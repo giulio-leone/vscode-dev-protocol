@@ -52,46 +52,20 @@ async function handlePlan(
   request: vscode.ChatRequest,
   stream: vscode.ChatResponseStream,
   token: vscode.CancellationToken,
-  context: vscode.ExtensionContext
+  _context: vscode.ExtensionContext
 ): Promise<vscode.ChatResult> {
   stream.markdown(
     `## Dev Protocol — Planning Session\n\n` +
     `I'll guide you through creating a **Zod JSON plan** for your task.\n\n` +
     `**Task description**: ${request.prompt || '(none provided)'}\n\n` +
-    `Use \`devprotocol_ask_questions\` and \`devprotocol_create_plan\` tools ` +
-    `to build the plan interactively.\n`
+    `### Workflow\n` +
+    `1. Use \`#devprotocol_ask_questions\` to clarify requirements\n` +
+    `2. Iterate until all requirements are clear\n` +
+    `3. Use \`#devprotocol_create_plan\` to save the structured plan\n` +
+    `4. Use \`#devprotocol_create_branch\` to start working\n\n` +
+    `> **Principles**: KISS · DRY · SOLID · Hexagonal Architecture\n` +
+    `> **No workarounds** — only permanent, structural solutions.\n`
   );
-
-  const models = await vscode.lm.selectChatModels({ vendor: 'copilot', family: 'gpt-4o' });
-  if (!models.length) {
-    stream.markdown('⚠️ No suitable language model available. Ensure GitHub Copilot is active.');
-    return {};
-  }
-
-  const model = models[0];
-  const systemPrompt = [
-    'You are @devprotocol, a workflow orchestration agent.',
-    'Your job is to help the user create a structured Zod JSON plan for their task.',
-    'Use the devprotocol_ask_questions tool to clarify requirements iteratively.',
-    'After gathering requirements, use devprotocol_create_plan to save the plan.',
-    'Follow: KISS, DRY, SOLID, Hexagonal Architecture.',
-    'Never suggest workarounds — only permanent, structural solutions.',
-  ].join('\n');
-
-  const messages: vscode.LanguageModelChatMessage[] = [
-    vscode.LanguageModelChatMessage.Assistant(systemPrompt),
-    vscode.LanguageModelChatMessage.User(
-      request.prompt
-        ? `Create a plan for: ${request.prompt}`
-        : 'Start the planning session by asking what I want to build.'
-    ),
-  ];
-
-  const response = await model.sendRequest(messages, { tools: request.toolInvocationToken ? [] : [] }, token);
-
-  for await (const chunk of response.text) {
-    stream.markdown(chunk);
-  }
 
   return {};
 }
@@ -116,9 +90,14 @@ async function handleApply(
   stream.markdown(
     `## Dev Protocol — Apply Instructions\n\n` +
     `The **\`devprotocol_apply_instructions\`** tool will copy bundled ` +
-    `\`.instructions.md\` files to your workspace \`.github/instructions/\`.\n\n` +
-    `Available categories: \`workflow\`, \`architecture\`, \`testing\`, or \`all\`.\n`
+    `\`.instructions.md\` files and agent hooks to your workspace.\n\n` +
+    `**Targets:**\n` +
+    `- Instructions → \`.github/instructions/\`\n` +
+    `- Hook config → \`.github/hooks/agent.json\`\n` +
+    `- Hook scripts → \`scripts/hooks/\`\n\n` +
+    `Available categories: \`workflow\`, \`architecture\`, \`testing\`, \`hooks\`, or \`all\`.\n`
   );
+  stream.button({ command: 'devprotocol.applyInstructions', title: '📦 Apply all to workspace' });
   return {};
 }
 

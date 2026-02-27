@@ -27,6 +27,18 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "devprotocol.applyInstructions",
+        "title": "Dev Protocol: Apply Instructions & Hooks to Workspace",
+        "category": "Dev Protocol"
+      },
+      {
+        "command": "devprotocol.openSessionLog",
+        "title": "Dev Protocol: Open Today's Session Log",
+        "category": "Dev Protocol"
+      }
+    ],
     "chatParticipants": [
       {
         "id": "devprotocol",
