@@ -204,7 +204,7 @@
       {
         "name": "devprotocol_apply_instructions",
         "displayName": "Apply Instructions to Workspace",
-        "modelDescription": "Copies bundled .instructions.md files from the extension to the current workspace .github/instructions/ directory. Supports selective copy by category.",
+        "modelDescription": "Copies bundled .instructions.md files and agent hooks from the extension to the current workspace. Instructions go to .github/instructions/, hooks config to .github/hooks/, and hook scripts to scripts/hooks/. Supports selective copy by category.",
         "canBeReferencedInPrompt": true,
         "icon": "$(files)",
         "inputSchema": {
@@ -214,7 +214,7 @@
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["workflow", "architecture", "testing", "all"]
+                "enum": ["workflow", "architecture", "testing", "hooks", "all"]
               },
               "default": ["all"]
             },
@@ -266,6 +266,16 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically apply bundled instructions to new workspaces on first activation"
+        },
+        "devprotocol.autoSelectRecommended": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-select the recommended option in #askQuestions without showing picker"
+        },
+        "devprotocol.hooks.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable agent hooks lifecycle integration"
         }
       }
     }

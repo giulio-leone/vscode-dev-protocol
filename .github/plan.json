@@ -191,6 +191,69 @@
             "deps": ["m6-i2"]
           }
         }
+      },
+      "m7": {
+        "id": "m7",
+        "title": "Agent hooks — full lifecycle coverage",
+        "priority": "high",
+        "issues": {
+          "m7-i1": {
+            "id": "m7-i1",
+            "task": "devprotocol.autoSelectRecommended setting + ask-questions.ts auto-select logic",
+            "priority": "critical",
+            "status": "not-started",
+            "deps": ["m2-i1"]
+          },
+          "m7-i2": {
+            "id": "m7-i2",
+            "task": "Hook config: assets/hooks/agent.json with all 8 events",
+            "priority": "critical",
+            "status": "not-started",
+            "deps": []
+          },
+          "m7-i3": {
+            "id": "m7-i3",
+            "task": "SessionStart hook: auto-load context + branch validation",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m7-i2"]
+          },
+          "m7-i4": {
+            "id": "m7-i4",
+            "task": "UserPromptSubmit hook: protocol enforcer + quality gate",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m7-i2"]
+          },
+          "m7-i5": {
+            "id": "m7-i5",
+            "task": "PreToolUse hooks: auto-select + security + branch-guard + safety-checkpoint + doc-first (5 scripts)",
+            "priority": "critical",
+            "status": "not-started",
+            "deps": ["m7-i1", "m7-i2"]
+          },
+          "m7-i6": {
+            "id": "m7-i6",
+            "task": "PostToolUse hooks: auto-format + type-check + change-logger (3 scripts)",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m7-i2"]
+          },
+          "m7-i7": {
+            "id": "m7-i7",
+            "task": "Remaining hooks: pre-compact-save + subagent-start + subagent-stop + stop-summary",
+            "priority": "medium",
+            "status": "not-started",
+            "deps": ["m7-i2"]
+          },
+          "m7-i8": {
+            "id": "m7-i8",
+            "task": "Update apply-instructions to copy hooks + scripts to workspace",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m7-i3", "m7-i4", "m7-i5", "m7-i6", "m7-i7"]
+          }
+        }
       }
     }
   }

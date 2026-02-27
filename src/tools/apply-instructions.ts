@@ -4,7 +4,7 @@ import * as path from 'path';
 import { getWorkspaceRoot } from '../utils/workspace';
 
 interface ApplyInstructionsInput {
-  readonly categories?: Array<'workflow' | 'architecture' | 'testing' | 'all'>;
+  readonly categories?: Array<'workflow' | 'architecture' | 'testing' | 'hooks' | 'all'>;
   readonly overwrite?: boolean;
 }
 
@@ -13,6 +13,23 @@ const INSTRUCTION_FILES: Record<string, string> = {
   architecture: 'architecture.instructions.md',
   testing: 'testing.instructions.md',
 };
+
+const HOOK_SCRIPTS = [
+  'session-start.sh',
+  'user-prompt-submit.sh',
+  'pre-tool-use-auto-select.sh',
+  'pre-tool-use-security.sh',
+  'pre-tool-use-branch-guard.sh',
+  'pre-tool-use-safety-checkpoint.sh',
+  'pre-tool-use-doc-first.sh',
+  'post-tool-use-format.sh',
+  'post-tool-use-typecheck.sh',
+  'post-tool-use-logger.sh',
+  'pre-compact-save.sh',
+  'subagent-start-inject.sh',
+  'subagent-stop-validate.sh',
+  'stop-summary.sh',
+] as const;
 
 /**
  * LM Tool: devprotocol_apply_instructions
@@ -72,11 +89,71 @@ export class ApplyInstructionsTool implements vscode.LanguageModelTool<ApplyInst
       results.push(`✅ copied ${filename}`);
     }
 
+    // Copy hooks if requested
+    if (categories.includes('all') || categories.includes('hooks')) {
+      const hooksResults = await this.copyHooks(wsRoot, overwrite);
+      results.push(...hooksResults);
+    }
+
     return new vscode.LanguageModelToolResult([
       new vscode.LanguageModelTextPart(
-        `Applied ${toApply.length} instruction files to .github/instructions/:\n${results.join('\n')}`
+        `Applied to workspace:\n${results.join('\n')}`
       ),
     ]);
+  }
+
+  private async copyHooks(wsRoot: string, overwrite: boolean): Promise<string[]> {
+    const results: string[] = [];
+
+    // Copy agent.json hook config
+    const hooksConfigDir = path.join(wsRoot, '.github', 'hooks');
+    await fs.mkdir(hooksConfigDir, { recursive: true });
+
+    const configSrc = vscode.Uri.joinPath(
+      this.context.extensionUri, 'assets', 'hooks', 'agent.json'
+    ).fsPath;
+    const configDest = path.join(hooksConfigDir, 'agent.json');
+
+    try {
+      await fs.access(configDest);
+      if (!overwrite) {
+        results.push('⏭️ skipped .github/hooks/agent.json (exists)');
+      } else {
+        await fs.copyFile(configSrc, configDest);
+        results.push('✅ copied .github/hooks/agent.json');
+      }
+    } catch {
+      await fs.copyFile(configSrc, configDest);
+      results.push('✅ copied .github/hooks/agent.json');
+    }
+
+    // Copy hook scripts
+    const scriptsDir = path.join(wsRoot, 'scripts', 'hooks');
+    await fs.mkdir(scriptsDir, { recursive: true });
+
+    for (const script of HOOK_SCRIPTS) {
+      const srcPath = vscode.Uri.joinPath(
+        this.context.extensionUri, 'assets', 'hooks', 'scripts', script
+      ).fsPath;
+      const destPath = path.join(scriptsDir, script);
+
+      try {
+        await fs.access(destPath);
+        if (!overwrite) {
+          results.push(`⏭️ skipped scripts/hooks/${script} (exists)`);
+          continue;
+        }
+      } catch {
+        // File doesn't exist, proceed
+      }
+
+      await fs.copyFile(srcPath, destPath);
+      // Preserve execute permission
+      await fs.chmod(destPath, 0o755);
+      results.push(`✅ copied scripts/hooks/${script}`);
+    }
+
+    return results;
   }
 
   prepareInvocation(

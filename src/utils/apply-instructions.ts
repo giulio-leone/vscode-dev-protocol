@@ -9,6 +9,23 @@ const INSTRUCTION_FILES: Record<string, string> = {
   testing: 'testing.instructions.md',
 };
 
+const HOOK_SCRIPTS = [
+  'session-start.sh',
+  'user-prompt-submit.sh',
+  'pre-tool-use-auto-select.sh',
+  'pre-tool-use-security.sh',
+  'pre-tool-use-branch-guard.sh',
+  'pre-tool-use-safety-checkpoint.sh',
+  'pre-tool-use-doc-first.sh',
+  'post-tool-use-format.sh',
+  'post-tool-use-typecheck.sh',
+  'post-tool-use-logger.sh',
+  'pre-compact-save.sh',
+  'subagent-start-inject.sh',
+  'subagent-stop-validate.sh',
+  'stop-summary.sh',
+] as const;
+
 export async function applyInstructionsToWorkspace(
   context: vscode.ExtensionContext,
   categories: string[],
@@ -46,7 +63,41 @@ export async function applyInstructionsToWorkspace(
     copied++;
   }
 
+  // Copy hooks
+  const hooksConfigDir = path.join(wsRoot, '.github', 'hooks');
+  await fs.mkdir(hooksConfigDir, { recursive: true });
+
+  const configSrc = vscode.Uri.joinPath(context.extensionUri, 'assets', 'hooks', 'agent.json').fsPath;
+  const configDest = path.join(hooksConfigDir, 'agent.json');
+  try {
+    await fs.access(configDest);
+    if (overwrite) {
+      await fs.copyFile(configSrc, configDest);
+      copied++;
+    }
+  } catch {
+    await fs.copyFile(configSrc, configDest);
+    copied++;
+  }
+
+  const scriptsDir = path.join(wsRoot, 'scripts', 'hooks');
+  await fs.mkdir(scriptsDir, { recursive: true });
+
+  for (const script of HOOK_SCRIPTS) {
+    const srcPath = vscode.Uri.joinPath(context.extensionUri, 'assets', 'hooks', 'scripts', script).fsPath;
+    const destPath = path.join(scriptsDir, script);
+    try {
+      await fs.access(destPath);
+      if (!overwrite) continue;
+    } catch {
+      // File doesn't exist, proceed
+    }
+    await fs.copyFile(srcPath, destPath);
+    await fs.chmod(destPath, 0o755);
+    copied++;
+  }
+
   await vscode.window.showInformationMessage(
-    `Dev Protocol: Applied ${copied} instruction file(s) to .github/instructions/`
+    `Dev Protocol: Applied ${copied} file(s) — instructions, hooks config, and scripts.`
   );
 }

@@ -30,6 +30,24 @@ export class AskQuestionsTool implements vscode.LanguageModelTool<AskQuestionsIn
   ): Promise<vscode.LanguageModelToolResult> {
     const { question, header, options: choices } = options.input;
 
+    // Auto-select recommended option if setting is enabled
+    const config = vscode.workspace.getConfiguration('devprotocol');
+    const autoSelect = config.get<boolean>('autoSelectRecommended', false);
+
+    if (autoSelect) {
+      const recommended = choices.find((opt) => opt.recommended);
+      if (recommended) {
+        const result: AskQuestionsResult = {
+          selected: [recommended.label],
+          freeText: null,
+          skipped: false,
+        };
+        return new vscode.LanguageModelToolResult([
+          new vscode.LanguageModelTextPart(JSON.stringify({ ...result, autoSelected: true })),
+        ]);
+      }
+    }
+
     // Build QuickPick items: first 3 concrete options + 1 freeform
     const qpItems: vscode.QuickPickItem[] = choices.map((opt, idx) => ({
       label: opt.label,

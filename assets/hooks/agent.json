@@ -1,0 +1,90 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/session-start.sh",
+        "timeout": 10
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/user-prompt-submit.sh",
+        "timeout": 5
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-tool-use-auto-select.sh",
+        "timeout": 5
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-tool-use-security.sh",
+        "timeout": 5
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-tool-use-branch-guard.sh",
+        "timeout": 5
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-tool-use-safety-checkpoint.sh",
+        "timeout": 15
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-tool-use-doc-first.sh",
+        "timeout": 5
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/post-tool-use-format.sh",
+        "timeout": 30
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/post-tool-use-typecheck.sh",
+        "timeout": 30
+      },
+      {
+        "type": "command",
+        "command": "./scripts/hooks/post-tool-use-logger.sh",
+        "timeout": 10
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/pre-compact-save.sh",
+        "timeout": 10
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/subagent-start-inject.sh",
+        "timeout": 5
+      }
+    ],
+    "SubagentStop": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/subagent-stop-validate.sh",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/hooks/stop-summary.sh",
+        "timeout": 15
+      }
+    ]
+  }
+}
