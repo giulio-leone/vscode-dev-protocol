@@ -117,21 +117,21 @@
             "id": "m4-i1",
             "task": "assets/instructions/workflow.instructions.md",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m3-i1"]
           },
           "m4-i2": {
             "id": "m4-i2",
             "task": "assets/instructions/architecture.instructions.md",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m3-i1"]
           },
           "m4-i3": {
             "id": "m4-i3",
             "task": "assets/instructions/testing.instructions.md",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m3-i1"]
           }
         }
@@ -145,14 +145,14 @@
             "id": "m5-i1",
             "task": "npm run build — verify webpack compilation",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m2-i1", "m2-i2", "m2-i3", "m2-i4", "m2-i5", "m2-i6", "m2-i7", "m2-i8", "m3-i1"]
           },
           "m5-i2": {
             "id": "m5-i2",
             "task": "npm run type-check — no TypeScript errors",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m5-i1"]
           },
           "m5-i3": {
@@ -173,14 +173,14 @@
             "id": "m6-i1",
             "task": "Push to GitHub repo vscode-dev-protocol",
             "priority": "high",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m5-i2"]
           },
           "m6-i2": {
             "id": "m6-i2",
             "task": "GitHub Actions CI: lint + type-check + build on push",
             "priority": "medium",
-            "status": "not-started",
+            "status": "done",
             "deps": ["m6-i1"]
           },
           "m6-i3": {
