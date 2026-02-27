@@ -1,0 +1,299 @@
+{
+  "name": "vscode-dev-protocol",
+  "displayName": "Dev Protocol",
+  "description": "Universal developer workflow protocol — @devprotocol agent + LM tools for GitHub Copilot. Enforces iterative planning, Zod JSON plans, branching strategy, document-first approach, and quality gates.",
+  "version": "0.1.0",
+  "publisher": "giulio-leone",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/giulio-leone/vscode-dev-protocol"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "copilot",
+    "agent",
+    "workflow",
+    "planning",
+    "protocol",
+    "ai"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "devprotocol",
+        "name": "devprotocol",
+        "fullName": "Dev Protocol",
+        "description": "Universal dev workflow agent: iterative planning, Zod JSON plans, branching, document-first, quality gates.",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "plan",
+            "description": "Start a new Zod JSON planning session for a feature or task"
+          },
+          {
+            "name": "session",
+            "description": "Create or update the current session log file"
+          },
+          {
+            "name": "apply",
+            "description": "Apply bundled instructions to the current workspace .github/instructions/"
+          },
+          {
+            "name": "review",
+            "description": "Review current plan progress and suggest next steps"
+          }
+        ]
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "devprotocol_ask_questions",
+        "displayName": "Ask Questions (Protocol)",
+        "modelDescription": "Presents the user with structured choices: always 4 options (3 concrete + 1 freeform), with the best future-proof option marked. Loops until user confirms satisfaction. Use this instead of asking freeform questions.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(question)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "question": { "type": "string", "description": "The question to ask" },
+            "header": { "type": "string", "description": "Section header for the question" },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": { "type": "string" },
+                  "description": { "type": "string" },
+                  "recommended": { "type": "boolean" }
+                },
+                "required": ["label"]
+              },
+              "minItems": 3,
+              "maxItems": 3,
+              "description": "Exactly 3 concrete options (freeform is always added automatically)"
+            }
+          },
+          "required": ["question", "options"]
+        }
+      },
+      {
+        "name": "devprotocol_create_plan",
+        "displayName": "Create Zod JSON Plan",
+        "modelDescription": "Generates a structured Zod JSON plan with PRD, contesto, milestones, and issues with dependencies. Saves to .github/plan.json in the workspace. Use before starting any non-trivial task.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(checklist)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "prd": { "type": "string", "description": "Product Requirements Description" },
+            "contesto": { "type": "string", "description": "Current branch, stack, relevant dependencies" },
+            "milestones": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "priority": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "task": { "type": "string" },
+                        "priority": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+                        "deps": { "type": "array", "items": { "type": "string" } }
+                      },
+                      "required": ["id", "task", "priority", "deps"]
+                    }
+                  }
+                },
+                "required": ["id", "title", "priority", "issues"]
+              }
+            }
+          },
+          "required": ["prd", "contesto", "milestones"]
+        }
+      },
+      {
+        "name": "devprotocol_log_session",
+        "displayName": "Log Session",
+        "modelDescription": "Creates or updates sessions-YYYY-MM-DD.md in the workspace root with milestone/issue progress, status, and work summary.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(notebook)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "branch": { "type": "string" },
+            "milestoneSummary": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "status": { "type": "string", "enum": ["done", "in-progress", "not-started"] }
+                }
+              }
+            },
+            "workSummary": { "type": "string" }
+          },
+          "required": ["branch", "milestoneSummary", "workSummary"]
+        }
+      },
+      {
+        "name": "devprotocol_create_branch",
+        "displayName": "Create Branch (Protocol)",
+        "modelDescription": "Creates a git branch following the protocol naming convention (feat/, fix/, chore/, docs/ prefix). Validates no uncommitted changes exist before branching.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(git-branch)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string", "description": "Branch name without prefix" },
+            "prefix": {
+              "type": "string",
+              "enum": ["feat", "fix", "chore", "docs"],
+              "default": "feat"
+            },
+            "fromBranch": { "type": "string", "description": "Source branch (default: current)" }
+          },
+          "required": ["name"]
+        }
+      },
+      {
+        "name": "devprotocol_document_first",
+        "displayName": "Document First Lookup",
+        "modelDescription": "Fetches official documentation for a library via Context7 MCP before implementing. Always call this before writing code that uses an external library.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(book)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "library": { "type": "string", "description": "npm package name (e.g. 'lit', 'zod', 'vitest')" },
+            "topic": { "type": "string", "description": "Specific topic to fetch (e.g. 'reactive properties', 'async validators')" }
+          },
+          "required": ["library"]
+        }
+      },
+      {
+        "name": "devprotocol_enforce_quality",
+        "displayName": "Enforce Quality Gate",
+        "modelDescription": "Validates that a proposed solution follows: KISS, DRY, SOLID, Hexagonal Architecture. Rejects workarounds, patches, and band-aid fixes. Returns pass/fail with reasoning.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(shield)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "proposedSolution": { "type": "string", "description": "Description or code snippet of proposed solution" },
+            "problemStatement": { "type": "string", "description": "The problem being solved" }
+          },
+          "required": ["proposedSolution", "problemStatement"]
+        }
+      },
+      {
+        "name": "devprotocol_apply_instructions",
+        "displayName": "Apply Instructions to Workspace",
+        "modelDescription": "Copies bundled .instructions.md files from the extension to the current workspace .github/instructions/ directory. Supports selective copy by category.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(files)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["workflow", "architecture", "testing", "all"]
+              },
+              "default": ["all"]
+            },
+            "overwrite": { "type": "boolean", "default": false }
+          }
+        }
+      },
+      {
+        "name": "devprotocol_run_subagent",
+        "displayName": "Run Subagent (Protocol)",
+        "modelDescription": "Delegates a focused research or execution task to a subagent for maximum efficiency. Specify thoroughness (quick/medium/thorough) and expected output format.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(symbol-event)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "task": { "type": "string", "description": "Detailed description of what the subagent should do" },
+            "thoroughness": {
+              "type": "string",
+              "enum": ["quick", "medium", "thorough"],
+              "default": "medium"
+            },
+            "expectedOutput": { "type": "string", "description": "Format/structure of the expected output" }
+          },
+          "required": ["task"]
+        }
+      }
+    ],
+    "configuration": {
+      "title": "Dev Protocol",
+      "properties": {
+        "devprotocol.askQuestionsStyle": {
+          "type": "string",
+          "enum": ["quickpick", "chat"],
+          "default": "chat",
+          "description": "How devprotocol_ask_questions presents choices: in-chat replies or VS Code QuickPick"
+        },
+        "devprotocol.planOutputPath": {
+          "type": "string",
+          "default": ".github/plan.json",
+          "description": "Where to save Zod JSON plan files"
+        },
+        "devprotocol.sessionLogPath": {
+          "type": "string",
+          "default": "sessions-{date}.md",
+          "description": "Template for session log file path (supports {date} placeholder)"
+        },
+        "devprotocol.autoApplyInstructions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically apply bundled instructions to new workspaces on first activation"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build:prod",
+    "build": "webpack --mode development",
+    "build:prod": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/vsce": "^3.0.0",
+    "eslint": "^9.0.0",
+    "ts-loader": "^9.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0",
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0"
+  }
+}

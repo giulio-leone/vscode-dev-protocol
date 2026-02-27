@@ -1,0 +1,197 @@
+{
+  "plan": {
+    "PRD": "Build a VS Code extension that packages the Dev Protocol as a reusable, 1-click installable workflow tool. The extension contributes an @devprotocol chat participant and 8 LM tools that integrate natively with GitHub Copilot, enforcing iterative planning, Zod JSON plans, branching strategy, document-first lookup, quality gates, and session logging across any project.",
+    "contesto": "New repo: vscode-dev-protocol. Stack: TypeScript 5.7 strict, Webpack 5, VS Code Extension API 1.95+, vscode.lm + vscode.chat APIs. Publisher: giulio-leone. Target: VS Code Marketplace 1-click install.",
+    "milestones": {
+      "m1": {
+        "id": "m1",
+        "title": "Extension scaffold & core tools",
+        "priority": "critical",
+        "issues": {
+          "m1-i1": {
+            "id": "m1-i1",
+            "task": "package.json with chatParticipants + languageModelTools contributions",
+            "priority": "critical",
+            "status": "done",
+            "deps": []
+          },
+          "m1-i2": {
+            "id": "m1-i2",
+            "task": "tsconfig.json + webpack.config.js",
+            "priority": "critical",
+            "status": "done",
+            "deps": ["m1-i1"]
+          },
+          "m1-i3": {
+            "id": "m1-i3",
+            "task": "src/extension.ts activation + tool + participant registration",
+            "priority": "critical",
+            "status": "done",
+            "deps": ["m1-i2"]
+          }
+        }
+      },
+      "m2": {
+        "id": "m2",
+        "title": "LM Tools implementation (parallelizable)",
+        "priority": "critical",
+        "issues": {
+          "m2-i1": {
+            "id": "m2-i1",
+            "task": "devprotocol_ask_questions — QuickPick with 4 options, freeform, recommended flag",
+            "priority": "critical",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i2": {
+            "id": "m2-i2",
+            "task": "devprotocol_create_plan — Zod JSON plan writer to .github/plan.json",
+            "priority": "critical",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i3": {
+            "id": "m2-i3",
+            "task": "devprotocol_log_session — sessions-{date}.md writer",
+            "priority": "high",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i4": {
+            "id": "m2-i4",
+            "task": "devprotocol_create_branch — git branch with clean-tree validation",
+            "priority": "high",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i5": {
+            "id": "m2-i5",
+            "task": "devprotocol_document_first — Context7 MCP guidance generator",
+            "priority": "high",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i6": {
+            "id": "m2-i6",
+            "task": "devprotocol_enforce_quality — KISS/SOLID/no-workaround validator",
+            "priority": "high",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i7": {
+            "id": "m2-i7",
+            "task": "devprotocol_apply_instructions — copy bundled .instructions.md files",
+            "priority": "high",
+            "status": "done",
+            "deps": ["m1-i3"]
+          },
+          "m2-i8": {
+            "id": "m2-i8",
+            "task": "devprotocol_run_subagent — subagent delegation prompt generator",
+            "priority": "medium",
+            "status": "done",
+            "deps": ["m1-i3"]
+          }
+        }
+      },
+      "m3": {
+        "id": "m3",
+        "title": "@devprotocol chat participant",
+        "priority": "critical",
+        "issues": {
+          "m3-i1": {
+            "id": "m3-i1",
+            "task": "src/agent/participant.ts — /plan, /session, /apply, /review commands",
+            "priority": "critical",
+            "status": "done",
+            "deps": ["m2-i1", "m2-i2"]
+          }
+        }
+      },
+      "m4": {
+        "id": "m4",
+        "title": "Bundled assets — instructions files",
+        "priority": "high",
+        "issues": {
+          "m4-i1": {
+            "id": "m4-i1",
+            "task": "assets/instructions/workflow.instructions.md",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m3-i1"]
+          },
+          "m4-i2": {
+            "id": "m4-i2",
+            "task": "assets/instructions/architecture.instructions.md",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m3-i1"]
+          },
+          "m4-i3": {
+            "id": "m4-i3",
+            "task": "assets/instructions/testing.instructions.md",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m3-i1"]
+          }
+        }
+      },
+      "m5": {
+        "id": "m5",
+        "title": "Build, lint, tests",
+        "priority": "high",
+        "issues": {
+          "m5-i1": {
+            "id": "m5-i1",
+            "task": "npm run build — verify webpack compilation",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m2-i1", "m2-i2", "m2-i3", "m2-i4", "m2-i5", "m2-i6", "m2-i7", "m2-i8", "m3-i1"]
+          },
+          "m5-i2": {
+            "id": "m5-i2",
+            "task": "npm run type-check — no TypeScript errors",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m5-i1"]
+          },
+          "m5-i3": {
+            "id": "m5-i3",
+            "task": "Write unit tests for pure logic (enforce-quality, document-first, run-subagent)",
+            "priority": "medium",
+            "status": "not-started",
+            "deps": ["m5-i2"]
+          }
+        }
+      },
+      "m6": {
+        "id": "m6",
+        "title": "GitHub repo + CI/CD + Marketplace",
+        "priority": "medium",
+        "issues": {
+          "m6-i1": {
+            "id": "m6-i1",
+            "task": "Push to GitHub repo vscode-dev-protocol",
+            "priority": "high",
+            "status": "not-started",
+            "deps": ["m5-i2"]
+          },
+          "m6-i2": {
+            "id": "m6-i2",
+            "task": "GitHub Actions CI: lint + type-check + build on push",
+            "priority": "medium",
+            "status": "not-started",
+            "deps": ["m6-i1"]
+          },
+          "m6-i3": {
+            "id": "m6-i3",
+            "task": "vsce package + publish to VS Code Marketplace",
+            "priority": "medium",
+            "status": "not-started",
+            "deps": ["m6-i2"]
+          }
+        }
+      }
+    }
+  }
+}
